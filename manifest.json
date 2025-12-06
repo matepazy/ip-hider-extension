@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "IP Address Hider",
+  "version": "1.0",
+  "description": "Blurs potential IPv4 and IPv6 addresses on webpages. Click to reveal.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ]
+}
