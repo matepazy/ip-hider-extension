@@ -3,140 +3,175 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-      --bg-color: #ffffff;
-      --text-color: #333333;
-      --border-color: #d1d5db;
-      --input-bg: #f9fafb;
-      --primary-color: #2563eb;
-      --note-color: #6b7280;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg-color: #1f2937;
-        --text-color: #f3f4f6;
-        --border-color: #374151;
-        --input-bg: #111827;
-        --primary-color: #3b82f6;
-        --note-color: #9ca3af;
-      }
-    }
-
-    body {
-      width: 320px;
-      padding: 16px;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
-      font-size: 14px;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      margin: 0;
-      box-sizing: border-box;
-    }
-
-    .toggle-container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      cursor: pointer;
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 40px;
-      height: 22px;
-      background-color: var(--border-color);
-      border-radius: 22px;
-      transition: background-color 0.2s;
-    }
-
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 18px;
-      height: 18px;
-      background-color: white;
-      border-radius: 50%;
-      transition: transform 0.2s;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    }
-
-    input[type="checkbox"] {
-      display: none;
-    }
-
-    input[type="checkbox"]:checked + .toggle-switch {
-      background-color: var(--primary-color);
-    }
-
-    input[type="checkbox"]:checked + .toggle-switch::after {
-      transform: translateX(18px);
-    }
-
-    .section-title {
-      font-weight: 600;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    textarea {
-      width: 100%;
-      background-color: var(--input-bg);
-      border: 1px solid var(--border-color);
-      color: var(--text-color);
-      border-radius: 6px;
-      padding: 8px;
-      font-family: inherit;
-      font-size: 13px;
-      resize: vertical;
-      box-sizing: border-box;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      margin-bottom: 8px;
-    }
-
-    textarea:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    .note-container {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .note {
-      font-size: 10px;
-      color: var(--note-color);
-    }
-
-    .important-note {
-      font-size: 14px;
-      color: var(--primary-color);
-      text-align: center;
-    }
-  </style>
+  <title>IP Hider Extension</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 </head>
 <body>
-  <label class="toggle-container">
-    <span class="section-title">Exclude Private IPs</span>
-    <input type="checkbox" id="excludePrivate">
-    <div class="toggle-switch"></div>
-  </label>
-
-  <label for="excludedSites" class="section-title">Excluded Sites</label>
-  <textarea id="excludedSites" rows="6" placeholder="example.com&#10;mysite.org"></textarea>
-  
-  <div class="note-container">
-    <span class="note">Enter one domain per line.</span>
-    <span class="note">The extension can hide text that isn't an IP address, but looks like one.</span>
-    <span class="important-note">Refresh page to apply changes!</span>
+  <div id="file-url-warning" class="warning-banner hidden">
+    <span>⚠️ Local file access is not enabled.</span>
+    <button id="open-settings-btn" class="text-link" style="color: white; padding: 0;">How to enable?</button>
   </div>
+  
+  <header class="header">
+    <div class="logo-section">
+      <div class="icon">
+        <img src="icons/icon64.png" alt="IP Hider Logo" style="width: 100%; height: 100%; border-radius: 8px;">
+      </div>
+      <h1 id="view-title" style="color: var(--primary); font-weight: 700;">IP Hider</h1>
+    </div>
+    <button id="settings-toggle" class="icon-btn" title="Settings">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </header>
+
+  <div id="homepage" class="view">
+    <label class="master-toggle">
+      <div class="toggle-info">
+        <span class="label">Protection</span>
+        <span id="status-text" class="status">Active</span>
+      </div>
+      <div class="switch">
+        <input type="checkbox" id="enabled">
+        <span class="slider"></span>
+      </div>
+    </label>
+
+    <div id="quick-exclude-container" class="quick-action hidden">
+      <button id="quick-exclude-btn" class="secondary-btn">Exclude this site</button>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <span class="section-label">Excluded Sites</span>
+      </div>
+      <textarea id="excludedSites" rows="3" placeholder="site1.com&#10;site2.org"></textarea>
+      <span class="hint">One domain per line.</span>
+    </section>
+  </div>
+
+  <div id="settings-page" class="view hidden">
+    <section class="section">
+      <div class="section-header">
+        <span class="section-label">Detection</span>
+      </div>
+      <div class="options-grid">
+        <label class="option-toggle">
+          <span class="option-name">IPv4 Addresses</span>
+          <div class="switch small">
+            <input type="checkbox" id="hideIPv4">
+            <span class="slider"></span>
+          </div>
+        </label>
+        <label class="option-toggle">
+          <span class="option-name">IPv6 Addresses</span>
+          <div class="switch small">
+            <input type="checkbox" id="hideIPv6">
+            <span class="slider"></span>
+          </div>
+        </label>
+        <label class="option-toggle">
+          <span class="option-name">Exclude Private IPs</span>
+          <div class="switch small">
+            <input type="checkbox" id="excludePrivate">
+            <span class="slider"></span>
+          </div>
+        </label>
+        <label class="option-toggle" title="Reduces false positives like version numbers and dates by analyzing context.">
+          <div class="option-info">
+             <span class="option-name">Enhanced Detection</span>
+             <span class="hint" style="margin-top: 0; font-size: 0.7rem;">[BETA]</span>
+          </div>
+          <div class="switch small">
+            <input type="checkbox" id="enhancedDetection">
+            <span class="slider"></span>
+          </div>
+        </label>
+        <div id="enhanced-options" class="sub-options hidden">
+          <label class="option-toggle" title="Blur IPs followed by CIDR notation (e.g. 192.168.1.1/24)">
+            <span class="option-name">Blur CIDR Notation</span>
+            <div class="switch small">
+              <input type="checkbox" id="blurCIDR">
+              <span class="slider"></span>
+            </div>
+          </label>
+          <label class="option-toggle" title="Blur IPs followed by port-like version numbers (e.g. 1.2.3.4:8080)">
+            <span class="option-name">Blur Port Numbers</span>
+            <div class="switch small">
+              <input type="checkbox" id="blurPort">
+              <span class="slider"></span>
+            </div>
+          </label>
+        </div>
+        <label class="option-toggle" title="Applies stricter filtering on development sites like GitHub to avoid blurring version numbers and code.">
+          <span class="option-name">Site-based detection</span>
+          <div class="switch small">
+            <input type="checkbox" id="siteDetection">
+            <span class="slider"></span>
+          </div>
+        </label>
+        
+        
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <span class="section-label">Appearance & Behavior</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hiding Mode</span>
+        <div class="segmented-control">
+          <input type="radio" name="hidingMode" value="blur" id="mode-blur" checked>
+          <label for="mode-blur">Blur</label>
+          <input type="radio" name="hidingMode" value="redact" id="mode-redact">
+          <label for="mode-redact">Redact</label>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Interaction</span>
+        <div class="segmented-control">
+          <input type="radio" name="interactionMode" value="click" id="inter-click" checked>
+          <label for="inter-click">Click</label>
+          <input type="radio" name="interactionMode" value="hover" id="inter-hover">
+          <label for="inter-hover">Hover</label>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-actions">
+       <a href="test_ips.html" target="_blank" id="open-test-page" class="text-link">Open Test Lab 🧪</a>
+    </div>
+  </div>
+
+  <div id="refresh-bar" class="refresh-bar hidden">
+    <span>Changes saved successfully</span>
+    <button id="reload-btn" class="refresh-btn">Reload Page</button>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <h3>Performance Notice</h3>
+      </div>
+      <p>Enhanced Detection performs additional deep-scan heuristic checks to reduce false positives. On pages with large amounts of text, this may slightly impact browsing performance.</p>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="tertiary-btn">Cancel</button>
+        <button id="modal-confirm" class="primary-btn-sm">Enable Anyway</button>
+      </div>
+    </div>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html>

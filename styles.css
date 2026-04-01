@@ -1,19 +1,25 @@
 .ip-wrapper {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   cursor: pointer;
-  margin: 0 2px;
-  vertical-align: text-bottom;
+  margin: 0 4px;
+  vertical-align: middle;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.ip-wrapper:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .ip-wrapper .ip-text {
-  filter: blur(5px);
-  opacity: 0.4;
   user-select: none;
-  transition: all 0.2s ease;
-  background-color: #ddd;
-  border-radius: 4px;
-  color: transparent;
+  transition: all 0.4s ease;
+  padding: 0 4px;
 }
 
 .ip-wrapper::after {
@@ -23,26 +29,62 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 10px;
-  font-family: sans-serif;
-  font-weight: bold;
-  background-color: #333;
+  font-family: inherit;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #333;
   color: #fff;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 4px;
   white-space: nowrap;
   pointer-events: none;
   z-index: 10;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
 }
 
-.ip-wrapper.revealed .ip-text {
-  filter: none;
-  opacity: 1;
-  background-color: transparent;
-  color: inherit;
+/* Mode Specifics - Overrides */
+.ip-wrapper.mode-blur .ip-text {
+  filter: blur(4px) !important;
+  opacity: 0.6 !important;
+}
+
+.ip-wrapper.mode-blur::after {
+  display: none !important; /* Fully hide label to show blurred text */
+}
+
+.ip-wrapper.mode-redact .ip-text {
+  filter: none !important;
+  opacity: 0 !important;
+}
+
+.ip-wrapper.mode-redact::after {
+  content: "HIDDEN IP" !important;
+}
+
+/* Revealed States (Click or Hover) */
+.ip-wrapper.revealed,
+.ip-wrapper.inter-hover:hover {
+  background: transparent;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.ip-wrapper.revealed .ip-text,
+.ip-wrapper.inter-hover:hover .ip-text {
+  filter: none !important;
+  opacity: 1 !important;
   user-select: text;
 }
 
-.ip-wrapper.revealed::after {
-  display: none;
+.ip-wrapper.revealed::after,
+.ip-wrapper.inter-hover:hover::after {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .ip-wrapper {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
 }

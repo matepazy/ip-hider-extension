@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Detection Heuristics Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-main);
+            letter-spacing: -0.025em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.should-hide { background-color: var(--primary); }
+        .dot.should-stay { background-color: var(--warning); }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .case-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .case-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .case-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .status-hide { background: #eef2ff; color: #4338ca; }
+        .status-stay { background: #fffbeb; color: #b45309; }
+
+        .case-content {
+            font-family: 'JetBrains Mono', monospace;
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            word-break: break-all;
+            border: 1px solid #cbd5e1;
+        }
+
+        .note {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            .case-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>IP Hider Test Lab</h1>
+            <p class="subtitle">Validate detection heuristics and Enhanced Mode performance.</p>
+        </header>
+
+        <div class="legend">
+            <div class="legend-item"><span class="dot should-hide"></span> Expected: Hidden</div>
+            <div class="legend-item"><span class="dot should-stay"></span> Expected: Visible (False Positive)</div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">IPv4 Addresses</h2>
+            <div class="case-grid">
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Standalone IPv4</span>
+                        <span class="status-badge status-hide">Hiding</span>
+                    </div>
+                    <div class="case-content">My public IP is 172.56.90.120 today.</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Bracketed IP</span>
+                        <span class="status-badge status-hide">Hiding</span>
+                    </div>
+                    <div class="case-content">Connected to server at [104.26.10.23]</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Gateway IP</span>
+                        <span class="status-badge status-hide">Hiding</span>
+                    </div>
+                    <div class="case-content">The gateway occurs at 192.168.1.254.</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Complex Hostname</span>
+                        <span class="status-badge status-hide">Hiding</span>
+                    </div>
+                    <div class="case-content">host-185.22.14.3.isp-provider.net</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">IPv6 Addresses</h2>
+            <div class="case-grid">
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Full IPv6</span>
+                        <span class="status-badge status-hide">Hiding</span>
+                    </div>
+                    <div class="case-content">2001:0db8:85a3:0000:0000:8a2e:0370:7334</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Compressed IPv6</span>
+                        <span class="status-badge status-hide">Hiding</span>
+                    </div>
+                    <div class="case-content">fe80::1ff:fe23:4567:890a</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">IPv6 Segment in Tag</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">ref-2001::1-tag</div>
+                    <p class="note">Ignored due to surrounding hyphens.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">False Positives (Ignore in Enhanced)</h2>
+            <div class="case-grid">
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Software Version</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Running Chrome version 123.0.6312.86</div>
+                    <p class="note">Matches standard versioning patterns.</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Build with Prefix</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">System build v1.2.3.4 (stable)</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Software Package</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Download installer-4.5.6.7.exe</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Date (YYYY.MM.DD)</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Log created on 2024.12.01.08</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Five Octets (Non-IP)</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Sequence: 1.2.3.4.5</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Subdomain Pattern</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Internal site: 1.1.2.2.internal.net</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Alpha Version Suffix</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">New beta build 1.2.3.4b released.</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Currency/Money</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Price: $1.2.3.4 (Invalid but ignored)</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">MAC Address (Colons)</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Hardware ID: 00:1B:44:11:3A:B7</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">MAC Address (Hyphens)</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Adapter: 00-0A-95-9D-68-16</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">GPS Coordinate Context</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Lat: 40.7128.74.0060 (Fictional point)</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Storage Capacity</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Used: 1.2.3.4 gb of 10 gb</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">CIDR Notation Range</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Network mask 192.168.1.0/24 allowed.</div>
+                    <p class="note">IfcidrDetection is off, IP part might hide.</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">CSS Variable</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">var(--theme-1.2.3.4)</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">IPv4-mapped IPv6</span>
+                        <span class="status-badge status-hide">Hiding</span>
+                    </div>
+                    <div class="case-content">::ffff:192.168.0.1</div>
+                </div>
+            </div>
+        <div class="section">
+            <h2 class="section-title">Site-based Detection (Code & Versions)</h2>
+            <div class="case-grid">
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">JS Array with Versions</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">const versions = ["1.2.3", "1.4.5", "2.0.1"];</div>
+                    <p class="note">Filtered on GitHub/dev sites to avoid blurring code assets.</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Package Dependency</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">"my-pkg": "^1.11.22", "other": "1.0.0.1"</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Git Tag Reference</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">git checkout tags/1.2.3.4</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-label">Semantic Versioning</span>
+                        <span class="status-badge status-stay">Stay</span>
+                    </div>
+                    <div class="case-content">Release 0.9.8.7-alpha is now live.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
